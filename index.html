@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DermaMatch AI</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&display=swap');
+
+*{box-sizing:border-box}
+body{
+ margin:0;color:#292338;
+ font-family:Baskerville,Georgia,serif;
+ background:
+ radial-gradient(circle at 10% 5%,#eadcff,transparent 35%),
+ radial-gradient(circle at 90% 20%,#ffe6f0,transparent 35%),
+ radial-gradient(circle at 50% 90%,#e5edff,transparent 40%),#faf8fc;
+}
+h1,h2,h3{font-family:"Cashmere","Cormorant Garamond",Georgia,serif}
+header{
+ padding:20px 7%;display:flex;justify-content:space-between;
+ align-items:center;background:#ffffffc9;backdrop-filter:blur(15px);
+ border-bottom:1px solid white;position:sticky;top:0;z-index:5
+}
+.logo{font-size:25px;color:#79569b;font-weight:bold}
+.logo span{color:#e94b91}
+.pro{background:#f2e7ff;padding:9px 15px;border-radius:30px;color:#8953a8;font-size:11px}
+main{max-width:1000px;margin:auto;padding:25px 20px 60px}
+.hero{text-align:center;padding:55px 10px 40px}
+.eyebrow{color:#a15db8;letter-spacing:3px;font-size:11px}
+.hero h1{font-size:65px;margin:15px 0}
+.hero h1 span{color:#a855f7;font-style:italic}
+.hero p{max-width:600px;margin:auto;color:#827b91;line-height:1.7;font-size:17px}
+.card{
+ background:#ffffffd9;border:1px solid white;backdrop-filter:blur(18px);
+ border-radius:24px;padding:25px;margin:20px 0;
+ box-shadow:0 12px 35px #65508012
+}
+h2{font-size:29px;margin:8px 0}
+h3{font-size:21px;margin:0 0 8px}
+.section-label{font-size:10px;letter-spacing:2px;color:#a36ab4}
+.desc{color:#827b91;font-size:14px;line-height:1.6}
+input,select,textarea{
+ font:inherit;padding:12px;border-radius:11px;
+ border:1px solid #e7dced;background:white;color:#292338;
+ outline:none;max-width:100%
+}
+input:focus,textarea:focus,select:focus{border-color:#b783d0}
+button{font:inherit;cursor:pointer}
+.primary{
+ border:0;border-radius:13px;padding:13px 20px;
+ background:linear-gradient(110deg,#f43f8b,#a855f7);
+ color:white;font-weight:bold;box-shadow:0 8px 20px #b35ca433
+}
+.primary:disabled{opacity:.6;cursor:wait}
+.secondary{
+ background:white;color:#8c5ba5;border:1px solid #e8d8f1;
+ border-radius:12px;padding:11px 16px
+}
+.add-row{display:flex;gap:10px;margin-top:15px}
+.add-row input{flex:1;min-width:0}
+.allergen-list,.ingredient-list{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0}
+.tag{
+ display:flex;align-items:center;gap:8px;padding:9px 13px;
+ background:#fff0f5;color:#ad507b;border:1px solid #f8d8e6;
+ border-radius:30px;font-size:13px
+}
+.tag button{border:0;background:none;color:inherit}
+.dropzone{
+ border:2px dashed #d8c5e8;border-radius:20px;
+ background:linear-gradient(135deg,#fbf8ff,#fff7fa);
+ text-align:center;padding:38px 15px;margin-top:20px;cursor:pointer
+}
+.dropzone:hover{border-color:#a855f7}
+.dropzone strong{display:block;font-size:17px;margin:10px}
+.dropzone p{color:#827b91;font-size:13px}
+.gallery{display:flex;gap:12px;overflow-x:auto;margin:20px 0}
+.thumb{position:relative;flex:none}
+.thumb img{width:95px;height:95px;object-fit:cover;border-radius:12px}
+.thumb button{
+ position:absolute;right:-5px;top:-5px;background:#a855f7;color:white;
+ border:0;border-radius:50%;width:23px;height:23px
+}
+.status{font-size:13px;color:#9365a8;margin-top:12px;line-height:1.5}
+textarea{width:100%;min-height:120px;resize:vertical}
+.report-controls{display:grid;grid-template-columns:1fr 1fr;gap:25px;margin:25px 0}
+.report-controls label{display:flex;flex-direction:column;gap:12px;color:#827b91;font-size:12px}
+input[type=range]{accent-color:#a855f7;padding:0;width:100%}
+.match{background:#fff0f1;border-left:4px solid #f43f5e;padding:15px;border-radius:10px;margin:12px 0}
+.no-match{background:#edf7ee;border-left:4px solid #65a477;padding:15px;border-radius:10px}
+.result-box{background:#faf6fc;padding:15px;border-radius:12px;margin:12px 0}
+.glossary-item{padding:15px 0;border-bottom:1px solid #eee5f1}
+.glossary-item p{font-size:13px;color:#827b91;line-height:1.6}
+.swap-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.swap-card{position:relative}
+.saving{color:#4f8c60;background:#eaf6ed;padding:7px 10px;border-radius:20px;font-size:11px;display:inline-block;margin-bottom:12px}
+.products{display:grid;grid-template-columns:1fr 25px 1fr;align-items:center;gap:8px}
+.products img{width:100%;height:115px;object-fit:cover;border-radius:12px;background:#f2edf6}
+.products strong{display:block;font-size:14px;margin:8px 0}
+.products b{color:#86569c}
+.overlap{margin:15px 0;color:#827b91;font-size:12px}
+.bar{height:6px;background:#eee6f2;border-radius:10px;margin-top:8px;overflow:hidden}
+.bar span{display:block;height:100%;background:linear-gradient(90deg,#efa4c8,#a855f7)}
+.compare{width:100%;padding:12px;background:white;border:1px solid #e9dcef;color:#86569c;border-radius:12px;margin-top:12px}
+footer{text-align:center;padding:30px;color:#a08fa8;font-size:11px}
+.modal-backdrop{
+ position:fixed;inset:0;background:#251a32aa;backdrop-filter:blur(6px);
+ display:none;align-items:center;justify-content:center;padding:15px;z-index:10
+}
+.modal{background:#fffafd;border-radius:22px;padding:25px;width:min(650px,100%);max-height:90vh;overflow:auto}
+.modal img{width:100%;height:110px;object-fit:cover;border-radius:12px}
+.modal-products{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.close{float:right;border:0;background:#f0e7f5;border-radius:50%;padding:9px}
+@media(max-width:650px){
+ .hero h1{font-size:47px}
+ .report-controls,.swap-grid{grid-template-columns:1fr}
+ header{padding:17px}
+ main{padding:15px}
+ .card{padding:19px}
+ .products img{height:100px}
+}
+</style>
+</head>
+
+<body>
+<header>
+ <div class="logo">DermaMatch <span>AI ✦</span></div>
+ <div class="pro">✧ BEAUTY INTELLIGENCE</div>
+</header>
+
+<main>
+<section class="hero">
+ <div class="eyebrow">YOUR PERSONAL INGREDIENT COMPANION</div>
+ <h1>Skincare, <span>decoded.</span></h1>
+ <p>Understand what's inside your skincare products, discover potential ingredient sensitivities and find more affordable alternatives.</p>
+</section>
+
+<section class="card">
+ <div class="section-label">01 — YOUR PROFILE</div>
+ <h2>Allergens & Sensitivities</h2>
+ <p class="desc">Add ingredients you know you are allergic or sensitive to. Your preferences are saved in this browser.</p>
+ <div class="allergen-list" id="allergenList"></div>
+ <div class="add-row">
+  <input id="allergenInput" placeholder="Enter an allergen...">
+  <button class="primary" onclick="addAllergen()">+ Add</button>
+ </div>
+</section>
+
+<section class="card">
+ <div class="section-label">02 — PRODUCT SCANNER</div>
+ <h2>Upload Multiple Product Images</h2>
+ <p class="desc">Add front, back, side and close-up label photos of the same product for better ingredient extraction.</p>
+
+ <div class="dropzone" onclick="document.getElementById('imageInput').click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+  <div style="font-size:35px">✧</div>
+  <strong>Drop your product images here</strong>
+  <p>Or click to browse · JPG, PNG, WEBP</p>
+  <button class="secondary" type="button">Choose images</button>
+  <input id="imageInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onchange="handleFiles(this.files)">
+ </div>
+
+ <div class="gallery" id="gallery"></div>
+
+ <div style="display:flex;gap:10px;flex-wrap:wrap">
+  <button class="primary" id="scanButton" onclick="scanImages()">Extract Ingredients with OCR →</button>
+  <button class="secondary" onclick="sampleScan()">✧ Simulate Sample Bottle Scan</button>
+ </div>
+ <div class="status" id="scanStatus"></div>
+</section>
+
+<section class="card">
+ <div class="section-label">03 — INGREDIENT REVIEW</div>
+ <h2>Review Your INCI List</h2>
+ <p class="desc">Edit extracted ingredients, remove incorrect entries or add missing ones.</p>
+ <textarea id="ingredients" placeholder="Extracted ingredients will appear here, separated by commas..."></textarea>
+ <div class="add-row">
+  <input id="manualIngredient" placeholder="Add an ingredient manually...">
+  <button class="secondary" onclick="addIngredient()">+ Add</button>
+ </div>
+ <button class="secondary" style="margin-top:12px" onclick="copyIngredients()">Copy ingredient list</button>
+
+ <div class="report-controls">
+  <label>PRODUCT CATEGORY
+   <select id="category">
+    <option>All</option><option>Serum</option><option>Moisturizer</option>
+    <option>Cleanser</option><option>Sunscreen</option><option>Toner</option><option>Eye Cream</option>
+   </select>
+  </label>
+  <label>MAXIMUM ALTERNATIVE BUDGET
+   <strong id="budgetText">₹3,000</strong>
+   <input id="budget" type="range" min="0" max="3000" step="50" value="3000" oninput="updateBudget()">
+   <span>₹0 — ₹3,000</span>
+  </label>
+ </div>
+ <button class="primary" style="width:100%" onclick="analyse()">ANALYZE LABEL & FIND SWAPS →</button>
+</section>
+
+<section id="report" class="card" style="display:none">
+ <div class="section-label">04 — YOUR PERSONAL MATCH</div>
+ <h2>Ingredient Safety Report</h2>
+ <div id="matches"></div>
+ <h3 style="margin-top:25px">Ingredient Demystifier</h3>
+ <p class="desc">Scientific names explained in simple language.</p>
+ <div id="glossary"></div>
+</section>
+
+<section>
+ <div class="section-label">05 — SMARTER SPENDING</div>
+ <h2>Discover Affordable Swaps</h2>
+ <p class="desc">Explore alternatives with overlapping ingredient themes at a lower sample price.</p>
+ <div class="swap-grid" id="swaps"></div>
+</section>
+
+<section class="card" style="text-align:center;background:linear-gradient(120deg,#f8eefa,#fff2f6,#eef3ff)">
+ <h2>Better informed. Never overwhelmed.</h2>
+ <p class="desc">DermaMatch AI helps you understand labels and compare skincare options.</p>
+ <button class="secondary" onclick="restart()">↻ Restart Experience</button>
+</section>
+</main>
+
+<footer>
+ DERMAMATCH AI ✦ INGREDIENT INTELLIGENCE, MADE PERSONAL
+ <p>Educational information only. Always check product labels and consult a qualified professional about known allergies.</p>
+</footer>
+
+<div class="modal-backdrop" id="modalBackdrop" onclick="closeModal(event)">
+ <div class="modal">
+  <button class="close" onclick="hideModal()">✕</button>
+  <div id="modalContent"></div>
+ </div>
+</div>
+
+<script>
+const defaults=["Fragrance","Methylparaben","Salicylic Acid"];
+let allergens=JSON.parse(localStorage.getItem("dm-allergens")||"null")||defaults;
+let files=[];
+let sampleMode=false;
+
+const glossary={
+ "tocopheryl acetate":["Vitamin E","Antioxidant that helps condition skin.","May irritate a small number of people."],
+ "niacinamide":["Vitamin B3","Supports the skin barrier and helps even the look of skin tone.","Some people experience temporary flushing or irritation."],
+ "ascorbic acid":["Vitamin C","Antioxidant used to brighten the look of skin.","Can sting, especially on sensitive skin."],
+ "sodium hyaluronate":["Hyaluronic Acid","Humectant that attracts and holds water.","Usually well tolerated; formula matters."],
+ "panthenol":["Pro-Vitamin B5","Skin-conditioning and moisture-supporting ingredient.","Generally well tolerated; sensitivities are possible."],
+ "methylparaben":["Methylparaben","Preservative that helps prevent microbial growth.","Rare contact allergy can occur."],
+ "fragrance":["Fragrance / Parfum","Adds scent to a cosmetic product.","A potential trigger for fragrance-sensitive users."],
+ "salicylic acid":["Salicylic Acid","Exfoliating beta-hydroxy acid used in blemish products.","Can cause dryness or irritation."],
+ "glycerin":["Glycerin","Humectant that attracts water to the skin.","Generally well tolerated."],
+ "alcohol denat":["Denatured Alcohol","Can act as a solvent and help a formula dry quickly.","May feel drying or irritating for some users."]
+};
+
+const swaps=[
+ {category:"Serum",premium:"Estée Lauder Advanced Night Repair",price:6500,alt:"Minimalist 10% Niacinamide",altPrice:599,overlap:42,shared:["Hydration support","Skin-conditioning ingredients"],a:["Bifida Ferment Lysate","Glycerin","Hyaluronic Acid"],b:["Niacinamide","Zinc PCA","Glycerin"],img:0},
+ {category:"Moisturizer",premium:"Kiehl’s Ultra Facial Cream",price:3200,alt:"Minimalist Ceramide Moisturizer",altPrice:1149,overlap:38,shared:["Moisture-supporting ingredients"],a:["Squalane","Glycerin"],b:["Ceramides","Glycerin","Hyaluronic Acid"],img:1},
+ {category:"Moisturizer",premium:"Clinique Moisture Surge",price:4500,alt:"Re’equil Ceramide & Hyaluronic Acid Moisturizer",altPrice:395,overlap:35,shared:["Hydration support"],a:["Aloe Bioferment","Hyaluronic Acid"],b:["Ceramides","Hyaluronic Acid","Glycerin"],img:2},
+ {category:"Serum",premium:"Lancôme Advanced Génifique",price:8500,alt:"Minimalist Multi-Peptide Serum",altPrice:699,overlap:31,shared:["Peptide-focused formulation"],a:["Bifida Ferment Lysate","Glycerin"],b:["Peptides","Hyaluronic Acid","Glycerin"],img:3},
+ {category:"Serum",premium:"The Ordinary Hyaluronic Acid 2% + B5",price:850,alt:"Minimalist Hyaluronic Acid 2%",altPrice:349,overlap:55,shared:["Hyaluronic Acid","Hydration support"],a:["Sodium Hyaluronate","Panthenol","Glycerin"],b:["Sodium Hyaluronate","Glycerin"],img:4}
+];
+const photos=[
+ "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=500",
+ "https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=500",
+ "https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?w=500"
+];
+const money=n=>"₹"+n.toLocaleString("en-IN");
+const norm=s=>s.toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+
+function renderAllergens(){
+ document.getElementById("allergenList").innerHTML=allergens.map((a,i)=>
+ `<span class="tag">${escapeHTML(a)} <button onclick="removeAllergen(${i})">✕</button></span>`
+ ).join("");
+ localStorage.setItem("dm-allergens",JSON.stringify(allergens));
+}
+function addAllergen(){
+ const input=document.getElementById("allergenInput");
+ const value=input.value.trim();
+ if(value&&!allergens.some(a=>norm(a)===norm(value)))allergens.push(value);
+ input.value="";renderAllergens();
+}
+function removeAllergen(i){allergens.splice(i,1);renderAllergens()}
+function handleFiles(list){
+ const accepted=Array.from(list||[]).filter(f=>["image/jpeg","image/png","image/webp"].includes(f.type));
+ if(accepted.length!==(list?.length||0))status("Some files were skipped. Use JPG, PNG or WEBP.");
+ files.push(...accepted);renderGallery();
+}
+function handleDrop(e){e.preventDefault();handleFiles(e.dataTransfer.files)}
+function renderGallery(){
+ const gallery=document.getElementById("gallery");
+ gallery.innerHTML="";
+ files.forEach((f,i)=>{
+  const url=URL.createObjectURL(f);
+  const div=document.createElement("div");div.className="thumb";
+  const img=document.createElement("img");img.src=url;
+  img.onload=()=>URL.revokeObjectURL(url);
+  const btn=document.createElement("button");btn.textContent="✕";btn.onclick=()=>{files.splice(i,1);renderGallery()};
+  div.append(img,btn);gallery.append(div);
+ });
+}
+function status(text){document.getElementById("scanStatus").textContent=text}
+async function scanImages(){
+ if(!files.length){status("Please upload at least one product image.");return}
+ const btn=document.getElementById("scanButton");
+ btn.disabled=true;let combined="";
+ try{
+  for(let i=0;i<files.length;i++){
+   status("Reading product image "+(i+1)+" of "+files.length+"...");
+   const result=await Tesseract.recognize(files[i],"eng",{
+    logger:m=>{if(m.status==="recognizing text")status("Reading image "+(i+1)+": "+Math.round(m.progress*100)+"%")}
+   });
+   combined+="\n"+result.data.text;
+  }
+  const section=combined.match(/ingredients?\s*[:\-]?([\s\S]*?)(?:\n\s*(?:directions|warning|caution|manufactured|net wt|expiry|use before)\b|$)/i);
+  const source=section?section[1]:combined;
+  const entries=source.replace(/[•●▪]/g,",").split(/[,;\n]+/)
+   .map(x=>x.replace(/[^\p{L}\p{N}\s%().+-]/gu,"").trim())
+   .filter(x=>x.length>2&&x.length<65);
+  const unique=[...new Map(entries.map(x=>[norm(x),x])).values()];
+  if(!unique.length)status("No ingredient text could be read. Try a clearer, well-lit close-up.");
+  else{
+   document.getElementById("ingredients").value=unique.join(", ");
+   sampleMode=false;
+   status("OCR completed. "+unique.length+" possible entries extracted. Please review the text.");
+  }
+ }catch(e){status("OCR failed. Please try clearer photos or add ingredients manually.")}
+ btn.disabled=false;
+}
+function sampleScan(){
+ sampleMode=true;
+ document.getElementById("ingredients").value="Aqua, Glycerin, Niacinamide, Sodium Hyaluronate, Fragrance, Methylparaben, Panthenol, Salicylic Acid";
+ status("DEMO MODE: Illustrative sample ingredients loaded. This is not a real scan.");
+}
+function addIngredient(){
+ const el=document.getElementById("manualIngredient");
+ const current=getIngredients();
+ if(el.value.trim())current.push(el.value.trim());
+ document.getElementById("ingredients").value=current.join(", ");
+ el.value="";
+}
+function getIngredients(){
+ return document.getElementById("ingredients").value.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean);
+}
+function copyIngredients(){
+ navigator.clipboard?.writeText(getIngredients().join(", "));
+ status("Ingredient list copied.");
+}
+function updateBudget(){
+ document.getElementById("budgetText").textContent=money(Number(document.getElementById("budget").value));
+ renderSwaps();
+}
+function analyse(){
+ const ingredients=getIngredients();
+ if(!ingredients.length){status("Please add or extract ingredients first.");return}
+ const matches=ingredients.filter(item=>allergens.some(a=>norm(item)===norm(a)||norm(item).includes(norm(a))||norm(a).includes(norm(item))));
+ const box=document.getElementById("matches");
+ box.innerHTML=matches.length
+ ?matches.map(m=>`<div class="match"><strong>⚠ ${escapeHTML(m)}</strong><p>This ingredient matches a term in your saved sensitivity list. Review it if you have a known sensitivity.</p></div>`).join("")
+ :`<div class="no-match"><strong>✓ No matches found in your saved sensitivity list.</strong><p>This does not guarantee that the product is suitable for you.</p></div>`;
+ box.innerHTML+=`<p class="desc">This is a basic ingredient-name comparison, not a medical assessment. Synonyms may not be detected, and no match does not guarantee safety.</p>`;
+ const glossaryBox=document.getElementById("glossary");
+ glossaryBox.innerHTML=ingredients.map(item=>{
+  const info=glossary[norm(item)];
+  return `<div class="glossary-item"><strong>${escapeHTML(item)}</strong><br><span style="color:#a36ab4">${info?escapeHTML(info[0]):"Common name not in sample glossary"}</span><p>${info?escapeHTML(info[1])+"<br>Consideration: "+escapeHTML(info[2]):"The cosmetic purpose depends on the formula and concentration. Check the manufacturer's ingredient information."}</p></div>`;
+ }).join("");
+ document.getElementById("report").style.display="block";
+ document.getElementById("report").scrollIntoView({behavior:"smooth"});
+}
+function renderSwaps(){
+ const category=document.getElementById("category").value;
+ const budget=Number(document.getElementById("budget").value);
+ const filtered=swaps.filter(s=>(category==="All"||s.category===category)&&s.altPrice<=budget);
+ document.getElementById("swaps").innerHTML=filtered.length?filtered.map((s,i)=>`
+ <div class="card swap-card">
+  <span class="saving">SAVE ${money(s.price-s.altPrice)}</span>
+  <div class="products">
+   <div><img src="${photos[i%photos.length]}" alt="Sample premium product"><small>PREMIUM PICK</small><strong>${escapeHTML(s.premium)}</strong><b>${money(s.price)}</b></div>
+   <div style="text-align:center;color:#ba91c9">→</div>
+   <div><img src="${photos[(i+1)%photos.length]}" alt="Sample alternative"><small>BUDGET OPTION</small><strong>${escapeHTML(s.alt)}</strong><b>${money(s.altPrice)}</b></div>
+  </div>
+  <div class="overlap">Illustrative ingredient overlap · <b>${s.overlap}%</b><div class="bar"><span style="width:${s.overlap}%"></span></div></div>
+  <button class="compare" onclick="showComparison(${swaps.indexOf(s)})">SIDE-BY-SIDE BREAKDOWN →</button>
